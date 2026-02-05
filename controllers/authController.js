@@ -34,8 +34,9 @@ exports.register = async (req, res) => {
       activationToken,
       isActive: false   // ⭐ important
     });
+   const link = `${process.env.BASE_URL}/auth/activate/${activationToken}`;
 
-    const link = `http://localhost:5000/auth/activate/${activationToken}`;
+   
 
     await sendEmail(
       email,
