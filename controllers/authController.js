@@ -140,14 +140,22 @@ exports.forgotPassword = async (req, res) => {
 
  const link = `${process.env.FRONTEND_URL}/reset/${resetToken}`;
 
-  await sendEmail(
-    user.email,
-    "Reset Password",
-    `
-      <h3>Reset your password</h3>
-      <a href="${link}">Click here to reset</a>
-    `
-  );
+ await sendEmail(
+  user.email,
+  "Reset Password",
+  `
+    <h3>Reset your password</h3>
+    <p>This link is valid for a limited time.</p>
+    <a 
+      href="${link}" 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      Click here to reset
+    </a>
+  `
+);
+
 
   res.json({ msg: "Reset email sent" });
 };
@@ -160,17 +168,20 @@ exports.forgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
 
+  const token = req.params.token.replace(/"/g, "").trim();
+
   const user = await User.findOne({
-    resetToken: req.params.token
+    resetToken: token
   });
 
   if (!user)
-    return res.status(400).json({ msg: "Invalid token" });
+    return res.status(400).json({ msg: "Invalid or expired token" });
 
   user.password = await bcrypt.hash(req.body.password, 10);
   user.resetToken = null;
 
   await user.save();
 
-  res.json({ msg: "Password updated" });
+  res.json({ msg: "Password updated successfully" });
 };
+
