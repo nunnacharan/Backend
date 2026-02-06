@@ -1,6 +1,6 @@
 const multer = require("multer");
 const { v4: uuid } = require("uuid");
-const s3 = require("../config/s3"); // ✅ ONLY ONE s3
+const s3 = require("../config/s3"); // ✅ SINGLE S3 INSTANCE
 const File = require("../models/File");
 
 /* ================= MULTER ================= */
@@ -21,6 +21,8 @@ exports.getFileUrl = async (req, res) => {
       Bucket: process.env.AWS_BUCKET,
       Key: file.key,
       Expires: 60, // 1 minute
+
+      // 👇 Forces browser preview
       ResponseContentDisposition: `inline; filename="${file.name}"`,
       ResponseContentType: file.type,
     });
@@ -66,7 +68,7 @@ exports.createFolder = async (req, res) => {
   res.json(folder);
 };
 
-/* ================= UPLOAD FILE ================= */
+/* ================= UPLOAD FILE (🔥 FIXED HERE) ================= */
 exports.uploadFile = async (req, res) => {
   const file = req.file;
   const key = uuid() + "-" + file.originalname;
@@ -75,7 +77,11 @@ exports.uploadFile = async (req, res) => {
     Bucket: process.env.AWS_BUCKET,
     Key: key,
     Body: file.buffer,
+
+    // ✅ REQUIRED FOR PDF / IMAGE PREVIEW
     ContentType: file.mimetype,
+    ContentDisposition: "inline",
+    CacheControl: "max-age=31536000",
   }).promise();
 
   const newFile = await File.create({
