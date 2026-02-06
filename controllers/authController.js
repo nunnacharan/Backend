@@ -39,14 +39,21 @@ exports.register = async (req, res) => {
    
 
     await sendEmail(
-      email,
-      "Activate your account",
-      `
-        <h2>Welcome to Cloud Drive</h2>
-        <p>Please click below to activate your account:</p>
-        <a href="${link}">Activate Account</a>
-      `
-    );
+  email,
+  "Activate your account",
+  `
+    <h2>Welcome to Cloud Drive</h2>
+    <p>Please click below to activate your account:</p>
+    <a 
+      href="${link}" 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      Activate Account
+    </a>
+  `
+);
+
 
     res.json({ msg: "Activation email sent" });
 
@@ -64,8 +71,10 @@ exports.register = async (req, res) => {
 
 exports.activate = async (req, res) => {
 
+  const token = req.params.token.replace(/"/g, "").trim();
+
   const user = await User.findOne({
-    activationToken: req.params.token
+    activationToken: token
   });
 
   if (!user)
@@ -73,11 +82,11 @@ exports.activate = async (req, res) => {
 
   user.isActive = true;
   user.activationToken = null;
-
   await user.save();
 
   res.send("✅ Account activated. You can login now.");
 };
+
 
 
 
