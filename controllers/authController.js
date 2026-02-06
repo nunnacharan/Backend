@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
       activationToken,
       isActive: false   // ⭐ important
     });
-   const link = `${process.env.BASE_URL}/auth/activate/${activationToken}`;
+   const link = `${process.env.FRONTEND_URL}/auth/activate/${activationToken}`;
 
    
 
