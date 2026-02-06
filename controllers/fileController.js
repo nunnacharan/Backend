@@ -2,12 +2,46 @@ const multer = require("multer");
 const { v4: uuid } = require("uuid");
 const s3 = require("../config/s3");
 const File = require("../models/File");
+const AWS = require("aws-sdk");
 
 /* ================= MULTER ================= */
 
 exports.uploadMiddleware = multer({
   storage: multer.memoryStorage(),
 });
+
+/* ================= AWS S3 ================= */
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY,
+  region: process.env.AWS_REGION
+});
+
+/* ================= GET FILE SIGNED URL ================= */
+
+exports.getFileUrl = async (req, res) => {
+  try {
+    const file = await File.findById(req.params.id);
+
+    if (!file || !file.key) {
+      return res.status(404).json({ msg: "File not found" });
+    }
+
+    const signedUrl = s3.getSignedUrl("getObject", {
+      Bucket: process.env.AWS_BUCKET,
+      Key: file.key,
+      Expires: 60, // 1 minute
+      ResponseContentDisposition: `inline; filename="${file.name}"`,
+      ResponseContentType: file.type
+    });
+
+    res.json({ url: signedUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Unable to generate file URL" });
+  }
+};
 
 
 /* ================= GET FILES ================= */
@@ -109,3 +143,4 @@ exports.renameFile = async (req, res) => {
 
   res.json({ msg: "Renamed" });
 };
+
