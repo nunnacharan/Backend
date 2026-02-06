@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const auth = require("../middleware/auth");
 
 const {
@@ -10,11 +9,15 @@ const {
   getFiles,
   deleteFile,
   renameFile,
-  getFolders
+  getFolders,
+  getFileUrl
 } = require("../controllers/fileController");
 
 router.get("/", auth, getFiles);
 router.get("/folders", auth, getFolders);
+
+// ✅ NEW ROUTE
+router.get("/open/:id", auth, getFileUrl);
 
 router.post("/upload", auth, uploadMiddleware.single("file"), uploadFile);
 router.post("/folder", auth, createFolder);
